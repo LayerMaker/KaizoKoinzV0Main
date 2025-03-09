@@ -119,25 +119,6 @@ export default function EmulatorSection() {
         window.EJS_controller = true
         console.log("EJS_controller set to:", window.EJS_controller)
         
-        // @ts-ignore - Set default controller mapping for standard SNES USB gamepads
-        window.EJS_defaultControls = {
-          0: { // Player 1
-            0: { value: 2, label: "BUTTON_2" },       // A button
-            1: { value: 3, label: "BUTTON_3" },       // B button
-            2: { value: 1, label: "BUTTON_1" },       // X button
-            3: { value: 4, label: "BUTTON_4" },       // Y button
-            4: { value: "SELECT", label: "SELECT" },  // SELECT button
-            5: { value: "START", label: "START" },    // START button
-            6: { value: "LEFT_TOP_SHOULDER", label: "LEFT_TOP_SHOULDER" },  // L button
-            7: { value: "RIGHT_TOP_SHOULDER", label: "RIGHT_TOP_SHOULDER" }, // R button
-            8: { value: "LEFT_STICK_Y:-1", label: "LEFT_STICK Y:-1" },  // UP direction
-            9: { value: "LEFT_STICK_Y:+1", label: "LEFT_STICK Y:+1" },  // DOWN direction
-            10: { value: "LEFT_STICK_X:-1", label: "LEFT_STICK X:-1" }, // LEFT direction
-            11: { value: "LEFT_STICK_X:+1", label: "LEFT_STICK X:+1" }  // RIGHT direction
-          }
-        }
-        console.log("EJS_defaultControls set for standard SNES USB gamepad")
-        
         // @ts-ignore - Set default volume
         window.EJS_volume = 0.8
         console.log("EJS_volume set to:", window.EJS_volume)
