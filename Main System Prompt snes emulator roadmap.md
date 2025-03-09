@@ -120,15 +120,40 @@ All development efforts should be focused on ensuring the emulator works correct
 
 ## Git Workflow and Version Control
 
-This project uses a "save state" approach to version control, similar to save states in video games. Refer to the `git-workflow.md` file for detailed instructions on:
+This project uses a "save state" approach to version control, similar to save states in video games. The following files provide detailed guidance:
 
-- Creating and managing save states (Git tags)
-- Working with feature branches
-- Merging completed features
-- Reverting to previous save states if needed
-- Pre-push verification process
+- `git-workflow.md`: Detailed instructions on the overall Git workflow
+- `git-checklist.md`: Step-by-step checklist for committing changes
+- `verify-before-push.js`: Script to verify code stability before pushing
 
-Always follow this workflow to maintain a stable codebase with clearly defined milestones.
+### Commit Process Overview
+
+1. **Before committing changes**:
+   - Verify all functionality works correctly (emulator, ROM loading, gamepad, audio, wallet)
+   - Run the verification script: `node verify-before-push.js`
+   - Address any errors or warnings
+
+2. **Committing changes**:
+   ```bash
+   git add .
+   git commit -m "Brief description of changes"
+   git push origin main
+   ```
+
+3. **Creating save states for milestones**:
+   ```bash
+   git tag -a "save-state2-feature-description" -m "Save state 2: Description"
+   git push origin "save-state2-feature-description"
+   ```
+
+### When to Create Save States
+
+Create a new save state when:
+- A major feature is completed and thoroughly tested
+- The codebase reaches a stable milestone
+- Before starting work on a potentially risky feature
+
+Always follow this workflow to maintain a stable codebase with clearly defined milestones that you can return to if needed.
 
 ## Project-Specific Implementation Guidelines
 
