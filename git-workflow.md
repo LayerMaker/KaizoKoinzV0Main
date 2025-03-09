@@ -1,5 +1,32 @@
 # Git Workflow for KaizoKoinz Project
 
+## Mandatory User Approval Process
+
+**CRITICAL: No code changes can be committed without explicit user approval.**
+
+Before any Git operations that modify the repository:
+
+1. **Demonstration of Changes**:
+   - The agent must demonstrate that all new features work correctly
+   - The agent must verify that existing functionality remains intact
+   - Screenshots or videos should be provided when applicable
+
+2. **Standardized Approval Request**:
+   - The agent must use clear language: "Would you like me to commit these changes to the repository?"
+   - The agent must specify exactly what will be committed
+   - The agent must never assume approval or commit code autonomously
+
+3. **Explicit User Permission**:
+   - The user must respond with clear approval before any Git commands are executed
+   - Approval must be for specific changes, not general permission
+   - If the user requests modifications, the approval process must restart
+
+4. **Post-Commit Verification**:
+   - After committing, the agent must confirm the commit was successful
+   - The agent must provide a summary of what was committed
+
+This approval process is non-negotiable and applies to all Git operations that modify the repository.
+
 ## Save State Approach
 
 This project uses a "save state" approach to version control, similar to save states in video games:

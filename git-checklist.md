@@ -2,6 +2,19 @@
 
 This checklist should be followed whenever you want to commit changes to the repository. It ensures that only stable, working code is committed and properly documented.
 
+## User Approval Requirements
+
+**MANDATORY: User approval is required before any Git operations.**
+
+- [ ] User has been shown a demonstration of all changes
+- [ ] User has verified that new features work correctly
+- [ ] User has confirmed that existing functionality is not broken
+- [ ] User has been asked explicitly: "Would you like me to commit these changes to the repository?"
+- [ ] User has given clear, explicit approval for the specific changes
+- [ ] The exact files to be committed have been listed for the user
+
+Without explicit user approval, no Git commands should be executed. This is a non-negotiable requirement to protect code stability.
+
 ## Pre-Commit Checklist
 
 Before committing any changes, verify that:

@@ -4,11 +4,15 @@
  * This script performs basic checks to verify that the code is in a stable state
  * before pushing to GitHub. It checks for:
  * 
- * 1. Compilation errors
- * 2. Basic functionality
- * 3. Summary of changes since last commit
+ * 1. User approval confirmation
+ * 2. Compilation errors
+ * 3. Basic functionality
+ * 4. Summary of changes since last commit
  * 
  * Usage: node verify-before-push.js
+ * 
+ * IMPORTANT: This script is a technical verification only.
+ * User approval is STILL REQUIRED before any Git operations.
  */
 
 const { execSync } = require('child_process');
@@ -32,6 +36,15 @@ console.log(`${colors.cyan}=== KaizoKoinz Pre-Push Verification ====${colors.res
 // Track overall status
 let hasErrors = false;
 let hasWarnings = false;
+let userApprovalConfirmed = false;
+
+// User approval reminder
+console.log(`${colors.red}=== USER APPROVAL REMINDER ====${colors.reset}`);
+console.log(`${colors.red}IMPORTANT: This script is a technical verification only.${colors.reset}`);
+console.log(`${colors.red}Before committing any changes, you MUST have explicit user approval.${colors.reset}`);
+console.log(`${colors.red}Have you received explicit user approval for these changes? (Y/N)${colors.reset}`);
+console.log(`${colors.red}This is a reminder only - the script cannot enforce this requirement.${colors.reset}`);
+console.log(`${colors.red}===============================${colors.reset}\n`);
 
 // Function to run a command and return its output
 function runCommand(command, errorMessage) {
@@ -123,6 +136,12 @@ console.log(`  - ROM loads properly`);
 console.log(`  - Gamepad detection works`);
 console.log(`  - Audio plays correctly`);
 console.log(`  - Wallet connection functions properly`);
+
+// Final user approval reminder
+console.log(`\n${colors.red}=== FINAL USER APPROVAL REMINDER ====${colors.reset}`);
+console.log(`${colors.red}DO NOT PROCEED WITHOUT EXPLICIT USER APPROVAL${colors.reset}`);
+console.log(`${colors.red}The user must have explicitly approved these changes${colors.reset}`);
+console.log(`${colors.red}=======================================${colors.reset}`);
 
 console.log(`\n${colors.cyan}=== End of Verification ====${colors.reset}`);
 

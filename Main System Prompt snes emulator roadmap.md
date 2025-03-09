@@ -126,6 +126,21 @@ This project uses a "save state" approach to version control, similar to save st
 - `git-checklist.md`: Step-by-step checklist for committing changes
 - `verify-before-push.js`: Script to verify code stability before pushing
 
+### Mandatory User Approval Requirement
+
+**CRITICAL: No code changes can be committed without explicit user approval.**
+
+The agent must:
+- Never commit code changes without explicit user permission
+- Demonstrate that all changes work correctly
+- Verify that existing functionality is not broken
+- Ask for approval using clear language: "Would you like me to commit these changes to the repository?"
+- List exactly which files will be committed
+- Wait for clear, explicit approval before executing any Git commands
+- Confirm successful commits after they are completed
+
+This approval requirement is non-negotiable and applies to all Git operations that modify the repository.
+
 ### Commit Process Overview
 
 1. **Before committing changes**:
