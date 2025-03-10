@@ -15,6 +15,17 @@ This checklist should be followed whenever you want to commit changes to the rep
 
 Without explicit user approval, no Git commands should be executed. This is a non-negotiable requirement to protect code stability.
 
+### Automated Approval Enforcement
+
+The repository now includes Git hooks that enforce the user approval requirement:
+
+1. **Pre-Commit and Pre-Push Hooks**: These hooks prevent any commit or push operation without explicit user approval.
+2. **Approval Process**: Run `node approve-git-push.js` to grant approval for a Git operation.
+3. **Time-Limited Approval**: Approvals expire after 5 minutes to prevent accidental or delayed operations.
+4. **Single-Use Approval**: Each approval is automatically revoked after use.
+
+This system ensures that no Git operations can be performed autonomously by the agent.
+
 ## Pre-Commit Checklist
 
 Before committing any changes, verify that:

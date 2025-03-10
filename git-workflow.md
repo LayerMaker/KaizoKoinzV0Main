@@ -27,6 +27,30 @@ Before any Git operations that modify the repository:
 
 This approval process is non-negotiable and applies to all Git operations that modify the repository.
 
+### Automated Approval Enforcement
+
+To prevent autonomous Git operations, the repository now includes a technical enforcement system:
+
+1. **Git Hooks**: Pre-commit and pre-push hooks block any Git operations without explicit user approval.
+
+2. **Approval Process**:
+   ```bash
+   # Run this script to grant approval for a Git operation
+   node approve-git-push.js
+   
+   # After approval, you have 5 minutes to execute your Git command
+   git commit -m "Your commit message"
+   git push origin main
+   ```
+
+3. **Security Features**:
+   - Approvals expire after 5 minutes
+   - Each approval is single-use and automatically revoked after use
+   - The system shows which files will be committed
+   - The system enforces the pre-commit checklist
+
+This technical solution ensures that no Git operations can be performed autonomously by the agent.
+
 ## Save State Approach
 
 This project uses a "save state" approach to version control, similar to save states in video games:
