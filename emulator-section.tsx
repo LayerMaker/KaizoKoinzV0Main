@@ -135,6 +135,17 @@ export default function EmulatorSection() {
         window.EJS_loadStateURL = "/api/save-states/load"
         console.log("EJS_loadStateURL set to:", window.EJS_loadStateURL)
         
+        // @ts-ignore - Set input settings to use LEFT_STICK for directional controls
+        window.EJS_InputSettings = {
+          "0": {
+            "up": { "button": "LEFT_STICK_Y:-1" },
+            "down": { "button": "LEFT_STICK_Y:+1" },
+            "left": { "button": "LEFT_STICK_X:-1" },
+            "right": { "button": "LEFT_STICK_X:+1" }
+          }
+        }
+        console.log("EJS_InputSettings configured for USB SNES controllers")
+        
         // @ts-ignore - Enable debug mode for more detailed logs
         window.EJS_DEBUG_XX = true
 
