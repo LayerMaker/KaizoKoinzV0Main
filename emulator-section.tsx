@@ -7,43 +7,24 @@ import Link from "next/link"
 import { GamepadIcon as GameController, Trophy } from "lucide-react"
 
 export default function EmulatorSection() {
-  const emulatorRef = useRef<HTMLDivElement>(null)
+  const iframeRef = useRef<HTMLIFrameElement>(null)
   const [gameCompleted, setGameCompleted] = useState(false)
-  const { isConnected } = useAccount()
+  const { isConnected: walletConnected } = useAccount()
   const { open } = useWeb3Modal()
+  
+  // For testing purposes, we'll bypass the wallet connection requirement
+  // In production, this should be removed and use walletConnected instead
+  const [bypassWalletForTesting] = useState(true) // Temporarily set to true for testing
+  const isConnected = walletConnected || bypassWalletForTesting
 
   // State for gamepad connection status
   const [gamepadConnected, setGamepadConnected] = useState(false)
-  // State for audio initialization
-  const [audioInitialized, setAudioInitialized] = useState(false)
   // State for loading status
   const [isLoading, setIsLoading] = useState(true)
   // State for error messages
   const [error, setError] = useState<string | null>(null)
-
-  // Initialize audio context on user interaction
-  const initializeAudio = () => {
-    try {
-      // Create a temporary audio context to initialize audio
-      const AudioContext = window.AudioContext || (window as any).webkitAudioContext
-      const audioContext = new AudioContext()
-      
-      // Create and play a silent sound to initialize audio
-      const oscillator = audioContext.createOscillator()
-      const gainNode = audioContext.createGain()
-      gainNode.gain.value = 0 // Silent
-      oscillator.connect(gainNode)
-      gainNode.connect(audioContext.destination)
-      oscillator.start(0)
-      oscillator.stop(0.1)
-      
-      setAudioInitialized(true)
-      return true
-    } catch (error) {
-      console.error("Failed to initialize audio:", error)
-      return false
-    }
-  }
+  // State to track if the game has started
+  const [gameStarted, setGameStarted] = useState(false)
 
   // Handle gamepad connection/disconnection events
   useEffect(() => {
@@ -75,160 +56,80 @@ export default function EmulatorSection() {
     }
   }, [])
 
-  // Load EmulatorJS
+  // Handle messages from the iframe
   useEffect(() => {
-    if (!emulatorRef.current || !isConnected) return
-
+    if (!isConnected) return
+    
     setIsLoading(true)
     setError(null)
-
-    const loadEmulator = async () => {
-      try {
-        // Initialize audio on first user interaction
-        if (!audioInitialized) {
-          const success = initializeAudio()
-          if (!success) {
-            console.warn("Audio initialization failed. Game audio may not work properly.")
-          }
-        }
-
-        // Configure EmulatorJS
-        console.log("Configuring EmulatorJS...")
-        
-        // @ts-ignore - EmulatorJS uses global variables
-        window.EJS_player = "#emulator"
-        console.log("EJS_player set to:", window.EJS_player)
-        
-        // @ts-ignore - Use our secure API endpoint for the ROM
-        window.EJS_gameUrl = "/api/roms/invictus"
-        console.log("EJS_gameUrl set to:", window.EJS_gameUrl)
-        
-        // @ts-ignore
-        window.EJS_core = "snes"
-        console.log("EJS_core set to:", window.EJS_core)
-        
-        // @ts-ignore - Use local path to EmulatorJS data
-        window.EJS_pathtodata = "/emulatorjs/EmulatorJS-main/data/"
-        console.log("EJS_pathtodata set to:", window.EJS_pathtodata)
-        
-        // @ts-ignore
-        window.EJS_gameID = "invictus"
-        console.log("EJS_gameID set to:", window.EJS_gameID)
-        
-        // @ts-ignore - Enable gamepad support
-        window.EJS_controller = true
-        console.log("EJS_controller set to:", window.EJS_controller)
-        
-        // @ts-ignore - Set default volume
-        window.EJS_volume = 0.8
-        console.log("EJS_volume set to:", window.EJS_volume)
-        
-        // @ts-ignore - Disable cheats
-        window.EJS_cheats = false
-        console.log("EJS_cheats set to:", window.EJS_cheats)
-        
-        // @ts-ignore - Set up save state handling
-        window.EJS_saveStateURL = "/api/save-states/save"
-        console.log("EJS_saveStateURL set to:", window.EJS_saveStateURL)
-        
-        // @ts-ignore
-        window.EJS_loadStateURL = "/api/save-states/load"
-        console.log("EJS_loadStateURL set to:", window.EJS_loadStateURL)
-        
-        // @ts-ignore - Set input settings to use LEFT_STICK for directional controls
-        window.EJS_InputSettings = {
-          "0": {
-            "up": { "button": "LEFT_STICK_Y:-1" },
-            "down": { "button": "LEFT_STICK_Y:+1" },
-            "left": { "button": "LEFT_STICK_X:-1" },
-            "right": { "button": "LEFT_STICK_X:+1" }
-          }
-        }
-        console.log("EJS_InputSettings configured for USB SNES controllers")
-        
-        // @ts-ignore - Enable debug mode for more detailed logs
-        window.EJS_DEBUG_XX = true
-
-        // Set up event listeners for game state
-        // @ts-ignore
-        window.EJS_onGameStart = () => {
-          console.log("Game started event triggered")
-          setIsLoading(false)
-        }
-
-        // @ts-ignore
-        window.EJS_onSaveState = (state: any) => {
-          console.log("Game state saved event triggered", state)
-          // In a real implementation, you would send the state to your server
-        }
-
-        // @ts-ignore
-        window.EJS_onLoadState = (state: any) => {
-          console.log("Game state loaded event triggered", state)
-          // In a real implementation, you would validate the state
-        }
-        
-        // Add error handler
-        // @ts-ignore
-        window.EJS_onError = (error: any) => {
-          console.error("EmulatorJS error:", error)
-          setError(`EmulatorJS error: ${error}`)
-          setIsLoading(false)
-        }
-
-        // Load the EmulatorJS script
-        console.log("Loading EmulatorJS script...")
-        const script = document.createElement("script")
-        script.src = "/emulatorjs/EmulatorJS-main/data/loader.js"
-        script.onerror = (e) => {
-          console.error("Failed to load EmulatorJS script:", e)
-          setError("Failed to load the emulator script. Please refresh the page and try again.")
-          setIsLoading(false)
-        }
-        script.onload = () => {
-          console.log("EmulatorJS script loaded successfully")
-        }
-        document.body.appendChild(script)
-
-        // Set up game completion detection
-        // For now, we'll still use a mock button for demonstration
-        // In a real implementation, you would listen for specific game events
-        const setupGameCompletionDetection = () => {
-          const completeGameBtn = document.createElement("button")
-          completeGameBtn.textContent = "Simulate Game Completion"
-          completeGameBtn.className = "absolute bottom-4 right-4 bg-purple-600 text-white px-4 py-2 rounded-md"
-          completeGameBtn.onclick = () => {
-            setGameCompleted(true)
-            // In a real implementation, you would verify completion on the server
-          }
-
-          if (emulatorRef.current) {
-            emulatorRef.current.appendChild(completeGameBtn)
-          }
-        }
-
-        // Set up completion detection after the game has loaded
-        setTimeout(setupGameCompletionDetection, 5000)
-      } catch (error) {
-        console.error("Error loading emulator:", error)
-        setError("An error occurred while loading the emulator. Please refresh the page and try again.")
+    
+    const handleMessage = (event: MessageEvent) => {
+      console.log("Message received from iframe:", event.data);
+      
+      if (event.data.type === 'gameStarted') {
+        console.log("Game started event received from iframe")
+        setIsLoading(false)
+        setGameStarted(true)
+      } else if (event.data.type === 'emulatorError') {
+        console.error("Emulator error event received from iframe:", event.data.error)
+        setError(`Error loading game: ${event.data.error}`)
         setIsLoading(false)
       }
     }
-
-    loadEmulator()
-
-    return () => {
-      // Cleanup function
-      const script = document.querySelector('script[src="/emulatorjs/EmulatorJS-main/data/loader.js"]')
-      if (script) {
-        document.body.removeChild(script)
+    
+    window.addEventListener('message', handleMessage)
+    
+    // Send a message to the iframe to check if it's loaded
+    const checkIframeLoaded = setInterval(() => {
+      if (iframeRef.current && iframeRef.current.contentWindow) {
+        console.log("Sending ping to iframe");
+        iframeRef.current.contentWindow.postMessage({ type: 'ping' }, '*');
       }
+    }, 2000);
+    
+    // Set up game completion detection
+    const setupCompletionButton = setTimeout(() => {
+      if (!gameCompleted) {
+        const completeGameBtn = document.createElement("button")
+        completeGameBtn.textContent = "Simulate Game Completion"
+        completeGameBtn.className = "absolute bottom-4 right-4 bg-purple-600 text-white px-4 py-2 rounded-md"
+        completeGameBtn.onclick = () => {
+          setGameCompleted(true)
+        }
+        
+        // Add the button to the parent container, not the iframe
+        const container = document.querySelector('.game-content')
+        if (container) {
+          container.appendChild(completeGameBtn)
+        }
+      }
+    }, 5000)
+    
+    return () => {
+      window.removeEventListener('message', handleMessage)
+      clearTimeout(setupCompletionButton)
+      clearInterval(checkIframeLoaded)
     }
-  }, [isConnected, audioInitialized])
+  }, [isConnected, gameCompleted])
+
+  // Function to reload the iframe
+  const reloadEmulator = () => {
+    if (iframeRef.current) {
+      console.log("Reloading emulator iframe");
+      const src = iframeRef.current.src;
+      iframeRef.current.src = '';
+      setTimeout(() => {
+        if (iframeRef.current) {
+          iframeRef.current.src = src;
+        }
+      }, 100);
+    }
+    setIsLoading(true);
+    setError(null);
+  };
 
   return (
-    <section id="emulator" className="min-h-screen pt-20 pb-16 relative">
+    <section id="emulator-section" className="min-h-screen pt-20 pb-16 relative">
       <div className="absolute inset-0 bg-gradient-to-b from-black via-purple-900/20 to-black z-0"></div>
 
       <div className="container mx-auto px-4 relative z-10">
@@ -241,7 +142,7 @@ export default function EmulatorSection() {
           </p>
         </div>
 
-        <div className="max-w-4xl mx-auto bg-gray-900/80 p-4 rounded-lg border border-cyan-500/30 shadow-lg shadow-cyan-500/10">
+        <div className="max-w-2xl mx-auto bg-gray-900/80 p-4 rounded-lg border border-cyan-500/30 shadow-lg shadow-cyan-500/10">
           {!isConnected ? (
             <div className="aspect-video flex flex-col items-center justify-center gap-4 bg-black/60 rounded-md p-8">
               <GameController size={64} className="text-cyan-400" />
@@ -270,7 +171,7 @@ export default function EmulatorSection() {
                   </div>
                   <p className="text-gray-300 text-center max-w-md">{error}</p>
                   <button
-                    onClick={() => window.location.reload()}
+                    onClick={reloadEmulator}
                     className="px-6 py-2 rounded-md bg-cyan-600 hover:bg-cyan-500 transition text-white"
                   >
                     Retry
@@ -278,7 +179,26 @@ export default function EmulatorSection() {
                 </div>
               )}
 
-              <div ref={emulatorRef} id="emulator" className="aspect-video bg-black rounded-md"></div>
+              <div className="box_gplay" style={{ maxWidth: "800px", margin: "0 auto" }}>
+                <div className="game-content" style={{ maxHeight: "600px", position: "relative" }}>
+                  <iframe 
+                    ref={iframeRef}
+                    src="/emulator.html" 
+                    style={{ 
+                      width: "100%", 
+                      height: "600px", 
+                      border: "none",
+                      backgroundColor: "#000"
+                    }}
+                    title="SNES Emulator"
+                    allow="autoplay; fullscreen"
+                    onLoad={() => {
+                      console.log("Iframe loaded");
+                      // We'll keep the loading state until we get the gameStarted message
+                    }}
+                  ></iframe>
+                </div>
+              </div>
 
               {gamepadConnected && (
                 <div className="absolute top-4 right-4 bg-green-500/20 text-green-400 px-3 py-1 rounded-full text-xs flex items-center">

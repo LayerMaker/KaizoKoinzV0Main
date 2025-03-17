@@ -2,32 +2,43 @@ import { NextRequest, NextResponse } from 'next/server';
 import * as fs from 'fs';
 import * as path from 'path';
 
-// This is a secure API route that handles saving game states
+// This API route handles saving game states
 export async function POST(request: NextRequest) {
   try {
-    // Get the authorization header
-    const authorization = request.headers.get('authorization');
-    
-    // In a real implementation, you would check if the user is authenticated
-    // and verify they have permission to save states for this game
+    // In a production environment, you would:
+    // 1. Authenticate the user
+    // 2. Verify they have permission to save for this game
+    // 3. Rate limit save requests
+    // 4. Validate the save data
     
     // Get the save state data from the request
-    const saveData = await request.text();
+    const saveData = await request.json();
     
-    // In a real implementation, you would:
-    // 1. Validate the save state data
-    // 2. Store it securely (database, file system with proper permissions, etc.)
-    // 3. Associate it with the user's account
+    // Validate the save data
+    if (!saveData || !saveData.gameId || !saveData.slot || !saveData.state) {
+      return NextResponse.json(
+        { error: 'Invalid save state data' },
+        { status: 400 }
+      );
+    }
     
-    // For this demo, we'll just log that we received the save state
-    console.log('Received save state data');
+    // Create the save directory if it doesn't exist
+    const saveDir = path.join(process.cwd(), 'private', 'saves', saveData.gameId);
+    if (!fs.existsSync(saveDir)) {
+      fs.mkdirSync(saveDir, { recursive: true });
+    }
     
-    // Return success response
+    // Save the state to a file
+    const savePath = path.join(saveDir, `slot_${saveData.slot}.json`);
+    fs.writeFileSync(savePath, JSON.stringify(saveData.state));
+    
+    console.log(`Saved state for game ${saveData.gameId} in slot ${saveData.slot}`);
+    
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error('Error saving game state:', error);
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: 'Failed to save game state' },
       { status: 500 }
     );
   }

@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>EmulatorJS</title>
+  <style>
+    body, html {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background-color: #000;
+    }
+    #game {
+      width: 100%;
+      height: 100%;
+    }
+  </style>
+</head>
+<body>
+  <div id="game"></div>
+  
+  <script type="text/javascript">
+    // Debug logging
+    console.log("Emulator HTML loading...");
+    
+    // EmulatorJS Configuration
+    EJS_player = '#game';
+    EJS_pathtodata = "/emulatorjs/EmulatorJS-main/data/";
+    EJS_gameUrl = '/api/roms/invictus'; 
+    EJS_core = 'snes';
+    EJS_gameID = 'invictus';
+    EJS_controller = true;
+    EJS_volume = 0.8;
+    EJS_cheats = false;
+    EJS_saveStateURL = "/api/save-states/save";
+    EJS_loadStateURL = "/api/save-states/load";
+    
+    console.log("EmulatorJS configuration set");
+    console.log("Game URL:", EJS_gameUrl);
+    
+    // Event handlers
+    EJS_onGameStart = function() {
+      console.log("Game started!");
+      window.parent.postMessage({ type: 'gameStarted' }, '*');
+    };
+    
+    EJS_onError = function(error) {
+      console.error("EmulatorJS error:", error);
+      window.parent.postMessage({ type: 'emulatorError', error: error }, '*');
+    };
+    
+    // Add a listener for messages from the parent window
+    window.addEventListener('message', function(event) {
+      console.log("Message received from parent:", event.data);
+    });
+    
+    // Log when the window loads
+    window.onload = function() {
+      console.log("Window loaded");
+    };
+  </script>
+  
+  <!-- EmulatorJS Loader -->
+  <script src="/emulatorjs/EmulatorJS-main/data/loader.js"></script>
+</body>
+</html>

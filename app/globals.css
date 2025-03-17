@@ -30,3 +30,38 @@ body {
 ::-webkit-scrollbar-thumb:hover {
   background: #444;
 }
+
+/* Container for the entire webpage */
+.container {
+  max-width: 1250px;
+  margin: 0 auto;
+  padding: 10px;
+}
+
+/* Emulator container */
+.box_gplay {
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+/* Game content with height constraint */
+.game-content {
+  max-height: 600px;
+  width: 100%;
+}
+
+/* Ensure proper aspect ratio is maintained */
+.aspect-video {
+  aspect-ratio: 16 / 9;
+}
+
+/* Fullscreen handling */
+.ejs__fullscreen .box_gplay,
+.ejs__fullscreen #game,
+.fullscreen .box_gplay,
+.fullscreen #game {
+  max-width: none !important;
+  width: 100% !important;
+  height: 100% !important;
+  max-height: none !important;
+}
