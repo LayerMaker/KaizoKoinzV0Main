@@ -65,3 +65,36 @@ body {
   height: 100% !important;
   max-height: none !important;
 }
+
+/* Iframe Emulator Specific Styles */
+iframe {
+  display: block;
+  border: none;
+  overflow: hidden;
+}
+
+/* Ensure emulator control bar stays properly positioned within the iframe */
+body iframe {
+  height: 600px !important;
+}
+
+/* Set consistent height for emulator-section containers */
+#emulator-section .relative.w-full {
+  height: 600px !important;
+}
+
+/* Hide any scrollbars and overflow content */
+#emulator-section iframe,
+#emulator-section .relative.w-full {
+  overflow: hidden !important;
+}
+
+/* Enhanced emulator controls visibility */
+.ejs_menu_bar,
+.ejs_menu_bar_wrap, 
+.ejs_menu_button {
+  opacity: 1 !important;
+  visibility: visible !important;
+  bottom: 0 !important;
+  position: absolute !important;
+}

@@ -1,0 +1,11 @@
+read main system prompt and understand the project.
+Familiarize yourself with the EmulatorJS documentation and the existing codebase.
+read the emulator-section.tsx file and understand the code.
+Ask user if there is a session report from the previous session.
+If there user says is, read the session report and understand the issues and solutions.
+If there is no session report, ask user for an overview of the last session.
+DO NOT REVERT TO A BACKUP UNLESS THE USER ASKS SPECIFICALLY RESQUEST IT.
+DO NOT modify or adjust the codebase unless the user asks for it in the new session.
+User usally like to launch the site to see the progress and the new features, as user if you would like to luanch the site once you have read the above related information..
+Only modify the codebase if the user asks for it in the new session.
+Ask users permission before modifying the codebase.

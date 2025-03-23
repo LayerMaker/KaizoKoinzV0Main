@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Crypto Retro - Play & Earn</title>
+  <!-- Web3 libraries -->
+  <script src="https://cdn.ethers.io/lib/ethers-5.7.2.umd.min.js" type="application/javascript"></script>
+  <style>
+    body, html {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+      background-color: #000000; /* Black background */
+      color: white;
+      font-family: 'Arial', sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      overflow: auto;
+    }
+    
+    #page-container {
+      width: 100%;
+      max-width: 1200px;
+      padding: 20px;
+      box-sizing: border-box;
+    }
+    
+    .header {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+    
+    .header h1 {
+      font-size: 3rem;
+      margin-bottom: 10px;
+      background: linear-gradient(to right, #4a90e2, #9b59b6);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    
+    .header p {
+      font-size: 1.2rem;
+      color: #aaa;
+      margin-bottom: 20px;
+    }
+    
+    #emulator-wrapper {
+      width: 100%;
+      max-width: 800px;
+      margin: 0 auto;
+      border: 4px solid #333;
+      border-radius: 4px;
+      overflow: hidden;
+      box-shadow: 0 0 20px rgba(74, 144, 226, 0.3);
+      position: relative;
+    }
+    
+    #emulator-container {
+      position: relative;
+      width: 100%;
+      padding-top: 75%; /* 4:3 Aspect Ratio */
+      overflow: hidden;
+      background-color: #000;
+    }
+    
+    #game {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+    }
+    
+    /* Custom styles to ensure controls stay within the container */
+    .ejs_menu_bar {
+      position: absolute !important;
+      bottom: 0 !important;
+      left: 0 !important;
+      right: 0 !important;
+      width: 100% !important;
+      z-index: 9999 !important;
+      max-width: 100% !important;
+      box-sizing: border-box !important;
+    }
+    
+    /* Ensure all EmulatorJS elements stay within container */
+    .ejs_menu_bar_wrap, 
+    .ejs_menu_button, 
+    .ejs_menu_item, 
+    .ejs_ad_iframe,
+    .ejs_virtualpad_container,
+    .ejs_virtualpad {
+      max-width: 100% !important;
+      box-sizing: border-box !important;
+    }
+    
+    /* Wallet connection button */
+    #wallet-connect-button {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      z-index: 1000;
+      background: linear-gradient(to right, #4a90e2, #9b59b6);
+      color: white;
+      border: none;
+      border-radius: 20px;
+      padding: 8px 16px;
+      font-weight: bold;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.3s ease;
+    }
+    
+    #wallet-connect-button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    }
+    
+    #wallet-status {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      z-index: 1000;
+      background-color: rgba(0, 0, 0, 0.7);
+      color: #4caf50;
+      border-radius: 20px;
+      padding: 8px 16px;
+      font-size: 0.8rem;
+      display: none;
+    }
+    
+    /* Loading overlay */
+    #loading-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.8);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+    }
+    
+    .spinner {
+      border: 4px solid rgba(255, 255, 255, 0.1);
+      border-radius: 50%;
+      border-top: 4px solid #4a90e2;
+      width: 50px;
+      height: 50px;
+      animation: spin 1s linear infinite;
+      margin-bottom: 20px;
+    }
+    
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    
+    /* Game completion overlay */
+    #completion-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.9);
+      display: none;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      z-index: 1001;
+      text-align: center;
+      padding: 20px;
+    }
+    
+    #completion-overlay h2 {
+      font-size: 2rem;
+      margin-bottom: 20px;
+      color: #f8d030;
+    }
+    
+    #completion-overlay p {
+      font-size: 1.2rem;
+      margin-bottom: 30px;
+      max-width: 80%;
+    }
+    
+    #claim-reward-button {
+      background: linear-gradient(to right, #f8d030, #f39c12);
+      color: white;
+      border: none;
+      border-radius: 25px;
+      padding: 12px 30px;
+      font-size: 1.2rem;
+      font-weight: bold;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+    
+    #claim-reward-button:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 6px 12px rgba(243, 156, 18, 0.3);
+    }
+    
+    #connect-wallet-for-reward {
+      background: linear-gradient(to right, #4a90e2, #9b59b6);
+      color: white;
+      border: none;
+      border-radius: 25px;
+      padding: 12px 30px;
+      font-size: 1.2rem;
+      font-weight: bold;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      display: none;
+    }
+    
+    #connect-wallet-for-reward:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 6px 12px rgba(74, 144, 226, 0.3);
+    }
+    
+    /* Controls info section */
+    .controls-info {
+      text-align: center;
+      margin-top: 20px;
+      color: #aaa;
+      font-size: 0.9rem;
+    }
+    
+    /* Space for content below the emulator */
+    .content-section {
+      margin-top: 30px;
+      padding: 20px;
+      background-color: rgba(255, 255, 255, 0.1);
+      border-radius: 8px;
+    }
+    
+    /* Trophy icon */
+    .trophy-icon {
+      font-size: 4rem;
+      color: #f8d030;
+      margin-bottom: 20px;
+    }
+    
+    /* Debug button (for testing) */
+    #debug-complete-button {
+      position: absolute;
+      bottom: 10px;
+      right: 10px;
+      background-color: rgba(155, 89, 182, 0.7);
+      color: white;
+      border: none;
+      border-radius: 4px;
+      padding: 5px 10px;
+      font-size: 0.8rem;
+      cursor: pointer;
+      z-index: 1000;
+    }
+  </style>
+</head>
+<body>
+  <div id="page-container">
+    <div class="header">
+      <h1>Play & Earn</h1>
+      <p>Complete the game to unlock exclusive crypto rewards</p>
+    </div>
+    
+    <div id="emulator-wrapper">
+      <!-- Wallet connection button -->
+      <button id="wallet-connect-button">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M21 18V19C21 20.1 20.1 21 19 21H5C3.89 21 3 20.1 3 19V5C3 3.9 3.89 3 5 3H19C20.1 3 21 3.9 21 5V6H12C10.89 6 10 6.9 10 8V16C10 17.1 10.89 18 12 18H21ZM12 16H22V8H12V16ZM16 13.5C15.17 13.5 14.5 12.83 14.5 12C14.5 11.17 15.17 10.5 16 10.5C16.83 10.5 17.5 11.17 17.5 12C17.5 12.83 16.83 13.5 16 13.5Z" fill="white"/>
+        </svg>
+        Connect Wallet
+      </button>
+      
+      <!-- Wallet status indicator -->
+      <div id="wallet-status">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M9 16.17L4.83 12L3.41 13.41L9 19L21 7L19.59 5.59L9 16.17Z" fill="#4caf50"/>
+        </svg>
+        Wallet Connected
+      </div>
+      
+      <div id="emulator-container">
+        <div id="game"></div>
+        
+        <!-- Loading overlay -->
+        <div id="loading-overlay">
+          <div class="spinner"></div>
+          <p>Loading game...</p>
+        </div>
+        
+        <!-- Game completion overlay -->
+        <div id="completion-overlay">
+          <div class="trophy-icon">🏆</div>
+          <h2>Congratulations!</h2>
+          <p id="completion-message">You've completed the game and unlocked your reward!</p>
+          <button id="claim-reward-button">Claim Your Reward</button>
+          <button id="connect-wallet-for-reward">Connect Wallet to Claim</button>
+        </div>
+        
+        <!-- Debug button for testing completion (will be hidden in production) -->
+        <button id="debug-complete-button">Simulate Game Completion</button>
+      </div>
+    </div>
+    
+    <div class="controls-info">
+      <p>Use arrow keys to move, Z for A button, X for B button, Enter for Start</p>
+      <p>Connect a gamepad for the best experience</p>
+      <p id="wallet-reminder">Connect your wallet to earn rewards when you complete the game!</p>
+    </div>
+  </div>
+  
+  <script type="text/javascript">
+    // Debug logging
+    console.log("Emulator HTML loading...");
+    
+    // EmulatorJS Configuration
+    EJS_player = '#game';
+    EJS_pathtodata = "/emulatorjs/EmulatorJS-main/data/";
+    EJS_gameUrl = '/api/roms/invictus'; 
+    EJS_core = 'snes';
+    EJS_gameID = 'invictus';
+    EJS_controller = true;
+    EJS_volume = 0.8;
+    EJS_cheats = false;
+    EJS_saveStateURL = "/api/save-states/save";
+    EJS_loadStateURL = "/api/save-states/load";
+    EJS_DEBUG_XX = true; // Enable debug mode
+    
+    console.log("EmulatorJS configuration set");
+    console.log("Game URL:", EJS_gameUrl);
+    console.log("Path to data:", EJS_pathtodata);
+    console.log("Core:", EJS_core);
+    
+    // Add error event listener to window
+    window.addEventListener('error', function(event) {
+      console.error('Global error:', event.message, 'at', event.filename, ':', event.lineno);
+    });
+    
+    // Add unhandled rejection listener
+    window.addEventListener('unhandledrejection', function(event) {
+      console.error('Unhandled rejection:', event.reason);
+    });
+    
+    // Wallet connection variables
+    let walletConnected = false;
+    let walletAddress = null;
+    let provider = null;
+    
+    // DOM elements
+    const walletConnectButton = document.getElementById('wallet-connect-button');
+    const walletStatus = document.getElementById('wallet-status');
+    const loadingOverlay = document.getElementById('loading-overlay');
+    const completionOverlay = document.getElementById('completion-overlay');
+    const completionMessage = document.getElementById('completion-message');
+    const claimRewardButton = document.getElementById('claim-reward-button');
+    const connectWalletForReward = document.getElementById('connect-wallet-for-reward');
+    const walletReminder = document.getElementById('wallet-reminder');
+    const debugCompleteButton = document.getElementById('debug-complete-button');
+    
+    // Simplified wallet connection for demo purposes
+    async function connectWallet() {
+      try {
+        // Check if MetaMask is installed
+        if (window.ethereum) {
+          console.log("MetaMask is installed!");
+          
+          // Request account access
+          const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+          walletAddress = accounts[0];
+          provider = new ethers.providers.Web3Provider(window.ethereum);
+          
+          console.log("Wallet connected:", walletAddress);
+          walletConnected = true;
+          
+          // Update UI
+          updateWalletUI();
+          
+          // Listen for account changes
+          window.ethereum.on('accountsChanged', (accounts) => {
+            if (accounts.length === 0) {
+              // User disconnected
+              disconnectWallet();
+            } else {
+              // Account changed
+              walletAddress = accounts[0];
+              updateWalletUI();
+            }
+          });
+        } else {
+          // If MetaMask is not installed, simulate wallet connection for demo
+          simulateWalletConnection();
+        }
+      } catch (error) {
+        console.error("Error connecting wallet:", error);
+        // For demo purposes, simulate wallet connection even if there's an error
+        simulateWalletConnection();
+      }
+    }
+    
+    // Simulate wallet connection for demo purposes
+    function simulateWalletConnection() {
+      walletAddress = "0x" + Math.random().toString(16).substr(2, 40);
+      walletConnected = true;
+      updateWalletUI();
+      console.log("Simulated wallet connected:", walletAddress);
+    }
+    
+    // Disconnect wallet function
+    function disconnectWallet() {
+      walletConnected = false;
+      walletAddress = null;
+      provider = null;
+      updateWalletUI();
+    }
+    
+    // Update UI based on wallet connection status
+    function updateWalletUI() {
+      if (walletConnected) {
+        walletConnectButton.innerHTML = `
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M9 16.17L4.83 12L3.41 13.41L9 19L21 7L19.59 5.59L9 16.17Z" fill="white"/>
+          </svg>
+          ${walletAddress.substring(0, 6)}...${walletAddress.substring(walletAddress.length - 4)}
+        `;
+        walletStatus.style.display = 'block';
+        walletReminder.style.display = 'none';
+        
+        // Update completion overlay if it's visible
+        if (completionOverlay.style.display === 'flex') {
+          completionMessage.textContent = "You've completed the game and unlocked your reward!";
+          claimRewardButton.style.display = 'block';
+          connectWalletForReward.style.display = 'none';
+        }
+      } else {
+        walletConnectButton.innerHTML = `
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M21 18V19C21 20.1 20.1 21 19 21H5C3.89 21 3 20.1 3 19V5C3 3.9 3.89 3 5 3H19C20.1 3 21 3.9 21 5V6H12C10.89 6 10 6.9 10 8V16C10 17.1 10.89 18 12 18H21ZM12 16H22V8H12V16ZM16 13.5C15.17 13.5 14.5 12.83 14.5 12C14.5 11.17 15.17 10.5 16 10.5C16.83 10.5 17.5 11.17 17.5 12C17.5 12.83 16.83 13.5 16 13.5Z" fill="white"/>
+          </svg>
+          Connect Wallet
+        `;
+        walletStatus.style.display = 'none';
+        walletReminder.style.display = 'block';
+        
+        // Update completion overlay if it's visible
+        if (completionOverlay.style.display === 'flex') {
+          completionMessage.textContent = "You've completed the game! Connect your wallet to claim rewards.";
+          claimRewardButton.style.display = 'none';
+          connectWalletForReward.style.display = 'block';
+        }
+      }
+    }
+    
+    // Show game completion overlay
+    function showCompletionOverlay() {
+      completionOverlay.style.display = 'flex';
+      updateWalletUI(); // Update UI based on wallet status
+    }
+    
+    // Claim reward function
+    async function claimReward() {
+      if (!walletConnected) {
+        alert("Please connect your wallet to claim rewards.");
+        return;
+      }
+      
+      try {
+        // In a real implementation, this would call a smart contract function
+        // For now, we'll just show a success message
+        alert(`Congratulations! Your reward has been sent to ${walletAddress}`);
+        
+        // Hide completion overlay
+        completionOverlay.style.display = 'none';
+      } catch (error) {
+        console.error("Error claiming reward:", error);
+        alert("Failed to claim reward. Please try again.");
+      }
+    }
+    
+    // Event handlers
+    EJS_onGameStart = function() {
+      console.log("Game started!");
+      loadingOverlay.style.display = 'none';
+    };
+    
+    EJS_onError = function(error) {
+      console.error("EmulatorJS error:", error);
+      loadingOverlay.innerHTML = `
+        <div style="color: #ff5252; font-size: 1.5rem; margin-bottom: 20px;">⚠️</div>
+        <p>Error loading game: ${error}</p>
+        <button onclick="location.reload()" style="margin-top: 20px; padding: 8px 16px; background-color: #4a90e2; color: white; border: none; border-radius: 4px; cursor: pointer;">Retry</button>
+      `;
+    };
+    
+    // Event listeners
+    walletConnectButton.addEventListener('click', connectWallet);
+    
+    claimRewardButton.addEventListener('click', claimReward);
+    
+    connectWalletForReward.addEventListener('click', connectWallet);
+    
+    // Debug button for testing completion
+    debugCompleteButton.addEventListener('click', showCompletionOverlay);
+    
+    // Initialize UI
+    updateWalletUI();
+    
+    // Log when the window loads
+    window.onload = function() {
+      console.log("Window loaded");
+    };
+  </script>
+  
+  <!-- EmulatorJS Loader -->
+  <script src="/emulatorjs/EmulatorJS-main/data/loader.js"></script>
+</body>
+</html>

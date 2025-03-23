@@ -7,6 +7,8 @@ import * as path from 'path';
 export async function GET(request: NextRequest) {
   try {
     console.log('API Route (/api): Received request for ROM file');
+    console.log('API Route (/api): Request URL:', request.url);
+    console.log('API Route (/api): Request headers:', Object.fromEntries(request.headers.entries()));
     
     // Get the authorization header
     const authorization = request.headers.get('authorization');

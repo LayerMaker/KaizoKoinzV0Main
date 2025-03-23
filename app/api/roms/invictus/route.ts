@@ -6,7 +6,14 @@ import * as path from 'path';
 // It includes authentication checks and rate limiting
 export async function GET(request: NextRequest) {
   try {
+    // Enhanced logging for debugging
+    console.log('=== ROM API ROUTE DEBUG ===');
     console.log('API Route: Received request for ROM file');
+    console.log('API Route: Request URL:', request.url);
+    console.log('API Route: Request method:', request.method);
+    console.log('API Route: Request headers:', JSON.stringify(Object.fromEntries(request.headers.entries()), null, 2));
+    console.log('API Route: Request referrer:', request.headers.get('referer') || 'Not present');
+    console.log('API Route: Request origin:', request.headers.get('origin') || 'Not present');
     
     // Get the authorization header
     const authorization = request.headers.get('authorization');
@@ -26,12 +33,14 @@ export async function GET(request: NextRequest) {
     // First try the private directory
     let romPath = path.join(process.cwd(), 'private', 'roms', 'Invictus 1.0.sfc');
     console.log('API Route: Checking for ROM at:', romPath);
+    console.log('API Route: File exists in private directory:', fs.existsSync(romPath));
     
     // If the file doesn't exist in the private directory, try the rom directory at the root level
     if (!fs.existsSync(romPath)) {
       console.log('API Route: ROM not found in private directory, checking root rom directory');
       romPath = path.join(process.cwd(), 'rom', 'Invictus 1.0.sfc');
       console.log('API Route: Checking for ROM at:', romPath);
+      console.log('API Route: File exists in root rom directory:', fs.existsSync(romPath));
     }
     
     // Check if the file exists in either location
@@ -45,9 +54,21 @@ export async function GET(request: NextRequest) {
     
     console.log('API Route: Serving ROM file from:', romPath);
     
-    // Read the ROM file
+    try {
+      // Read the ROM file with detailed error handling
+      const romData = fs.readFileSync(romPath);
+      console.log('API Route: ROM file size:', romData.length, 'bytes');
+      console.log('API Route: ROM file read successfully');
+    } catch (readError: any) {
+      console.error('API Route: Error reading ROM file:', readError);
+      return NextResponse.json(
+        { error: `Error reading ROM file: ${readError.message || 'Unknown error'}` },
+        { status: 500 }
+      );
+    }
+    
+    // Read the ROM file again for the response
     const romData = fs.readFileSync(romPath);
-    console.log('API Route: ROM file size:', romData.length, 'bytes');
     
     // Set appropriate headers
     const headers = new Headers();
@@ -56,7 +77,15 @@ export async function GET(request: NextRequest) {
     headers.set('Content-Length', romData.length.toString());
     
     // Add CORS headers to ensure the iframe can access the ROM
-    headers.set('Access-Control-Allow-Origin', '*');
+    const origin = request.headers.get('origin');
+    if (origin) {
+      console.log('API Route: Setting CORS for specific origin:', origin);
+      headers.set('Access-Control-Allow-Origin', origin);
+    } else {
+      console.log('API Route: Setting CORS for all origins');
+      headers.set('Access-Control-Allow-Origin', '*');
+    }
+    
     headers.set('Access-Control-Allow-Methods', 'GET, OPTIONS, PATCH, DELETE, POST, PUT');
     headers.set('Access-Control-Allow-Headers', 'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version, Authorization');
     headers.set('Access-Control-Allow-Credentials', 'true');
@@ -64,17 +93,19 @@ export async function GET(request: NextRequest) {
     // Prevent caching to ensure fresh checks on each request
     headers.set('Cache-Control', 'no-store, max-age=0');
     
-    console.log('API Route: Returning ROM file with headers:', Object.fromEntries(headers.entries()));
+    console.log('API Route: Returning ROM file with headers:', JSON.stringify(Object.fromEntries(headers.entries()), null, 2));
+    console.log('=== END ROM API ROUTE DEBUG ===');
     
     // Return the ROM file
     return new NextResponse(romData, {
       status: 200,
       headers,
     });
-  } catch (error) {
+  } catch (error: any) {
     console.error('API Route: Error serving ROM file:', error);
+    console.error('API Route: Error stack:', error.stack || 'No stack trace available');
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: `Internal server error: ${error.message || 'Unknown error'}` },
       { status: 500 }
     );
   }
@@ -82,15 +113,29 @@ export async function GET(request: NextRequest) {
 
 // Handle OPTIONS requests for CORS preflight
 export async function OPTIONS(request: NextRequest) {
+  console.log('=== OPTIONS API ROUTE DEBUG ===');
   console.log('API Route: Received OPTIONS request for CORS preflight');
+  console.log('API Route: Request URL:', request.url);
+  console.log('API Route: Request headers:', JSON.stringify(Object.fromEntries(request.headers.entries()), null, 2));
   
   const headers = new Headers();
-  headers.set('Access-Control-Allow-Origin', '*');
+  
+  // Set CORS headers based on origin
+  const origin = request.headers.get('origin');
+  if (origin) {
+    console.log('API Route: Setting CORS for specific origin:', origin);
+    headers.set('Access-Control-Allow-Origin', origin);
+  } else {
+    console.log('API Route: Setting CORS for all origins');
+    headers.set('Access-Control-Allow-Origin', '*');
+  }
+  
   headers.set('Access-Control-Allow-Methods', 'GET, OPTIONS, PATCH, DELETE, POST, PUT');
   headers.set('Access-Control-Allow-Headers', 'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version, Authorization');
   headers.set('Access-Control-Allow-Credentials', 'true');
   
-  console.log('API Route: Returning OPTIONS response with headers:', Object.fromEntries(headers.entries()));
+  console.log('API Route: Returning OPTIONS response with headers:', JSON.stringify(Object.fromEntries(headers.entries()), null, 2));
+  console.log('=== END OPTIONS API ROUTE DEBUG ===');
   
   return new NextResponse(null, {
     status: 204, // No content
